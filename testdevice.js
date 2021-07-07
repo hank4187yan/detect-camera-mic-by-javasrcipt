@@ -1,14 +1,9 @@
 
-
-
 var janus = null;
 var firstTime = true;
 var spinner = null;
 var audioDeviceId = null;
 var videoDeviceId = null;
-
-
-
 
 var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringValue("simulcast") === "true");
 var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
@@ -147,9 +142,6 @@ function  createLocalStream(callbacks) {
 };
 
 
-
-
-
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
@@ -171,12 +163,6 @@ $(document).ready(function() {
 			$('#start').removeAttr('disabled').html("Stop")
 				.click(function() {
 				    $(this).attr('disabled', true);
-					    /*
-						if(bitrateTimer)
-							clearInterval(bitrateTimer);
-						bitrateTimer = null;
-						Janus.destroy();
-						*/
 						window.location.reload();
 			});	
 
