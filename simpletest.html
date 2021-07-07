@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>node-node</title>
+<meta name="description" content="node">
+<meta name="keywords" content="node">
+
+</head>
+<body>
+<div class="content-box">
+<div class="index-main">
+    <video id="video" width="200" height="150" autoplay=""></video>
+</div>
+</div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript">
+    var video = document.querySelector('#video');
+
+	//constraints 参数是一个包含了video 和 audio两个成员的MediaStreamConstraints
+	//对象，用于说明请求的媒体类型。必须至少一个类型或者两个同时可以被指定。
+	var constraints = {
+		audio: false,
+		video: {
+			frameRate: { ideal: 10,max: 15,min: 8 }
+		}
+	}
+
+	//获取设备（摄像头或者麦克风）
+	navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+	.then(function(mediaStream){
+		console.log(mediaStream);
+		try {
+		    video.srcObject = mediaStream;
+		} catch (error) {
+		    video.src = window.URL.createObjectURL(mediaStream);
+		}
+		video.onloadedmetadata = function(e) {
+		    video.play();
+		    console.log(e);
+		};
+	})
+	.catch(function(error){
+		console.log(error);
+	});
+</script>
+<script>
+</script>
+</html>
