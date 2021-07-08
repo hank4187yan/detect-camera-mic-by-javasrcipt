@@ -1,17 +1,18 @@
-
+/*
+ * File: testdevice.js
+ * Desc: 
+ * Auth: hongkuiyan@yeah.net
+ * Date: 2021.7   
+ */
 var janus = null;
 var firstTime = true;
 var spinner = null;
 var audioDeviceId = null;
 var videoDeviceId = null;
 
-var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringValue("simulcast") === "true");
-var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
 var acodec = (getQueryStringValue("acodec") !== "" ? getQueryStringValue("acodec") : null);
 var vcodec = (getQueryStringValue("vcodec") !== "" ? getQueryStringValue("vcodec") : null);
 var vprofile = (getQueryStringValue("vprofile") !== "" ? getQueryStringValue("vprofile") : null);
-//var simulcastStarted = false;
-
 
 // Helper method to prepare a UI selection of the avai,lable devices
 function initDevices(devices, stream) {
@@ -32,9 +33,6 @@ function initDevices(devices, stream) {
 		} else if(device.kind === 'videoinput') {
 			$('#video-device').append(option);
 		} else if(device.kind === 'audiooutput') {
-			// Apparently only available from Chrome 49 on?
-			// https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId
-			// Definitely missing in Safari at the moment: https://bugs.webkit.org/show_bug.cgi?id=179415
 			$('#output-devices').removeClass('hide');
 			$('#audiooutput').append('<li><a href="#" id="' + device.deviceId + '">' + label + '</a></li>');
 			$('#audiooutput a').unbind('click')
@@ -67,7 +65,6 @@ function initDevices(devices, stream) {
 
 	$('#audio-device').val(audio);
 	$('#video-device').val(video);
-
 	$('#change-devices').click(function() {
 		// A different device has been selected: hangup the session, and set it up again
 		$('#audio-device, #video-device').attr('disabled', true);
@@ -82,20 +79,6 @@ function initDevices(devices, stream) {
 }
 
 function restartCapture(stream) {
-	// Negotiate WebRTC
-	var body = { audio: true, video: true };
-	// We can try and force a specific codec, by telling the plugin what we'd prefer
-	// For simplicity, you can set it via a query string (e.g., ?vcodec=vp9)
-	if(acodec)
-		body["audiocodec"] = acodec;
-	if(vcodec)
-		body["videocodec"] = vcodec;
-	// For the codecs that support them (VP9 and H.264) you can specify a codec
-	// profile as well (e.g., ?vprofile=2 for VP9, or ?vprofile=42e01f for H.264)
-	if(vprofile)
-		body["videoprofile"] = vprofile;
-	Janus.debug("Sending message:", body);
-	//echotest.send({ message: body });
 	Janus.debug("Trying a createOffer too (audio/video sendrecv)");
 	var replaceAudio = $('#audio-device').val() !== audioDeviceId;
 	audioDeviceId = $('#audio-device').val();
@@ -121,14 +104,8 @@ function restartCapture(stream) {
 				replaceVideo: replaceVideo, // This is only needed in case of a renegotiation
 				data: true	// Let's negotiate data channels as well
 			},
-			// If you want to test simulcasting (Chrome and Firefox only), then
-			// pass a ?simulcast=true when opening this demo page: it will turn
-			// the following 'simulcast' property to pass to janus.js to true
-			simulcast: doSimulcast,
-			simulcast2: doSimulcast2,
 			success: function(jsep) {
-				Janus.debug("Got SDP!", jsep);
-				//echotest.send({ message: body, jsep: jsep });
+				Janus.debug("Successful create local stream!", jsep);
 			},
 			error: function(error) {
 				Janus.error("WebRTC error:", error);
@@ -141,23 +118,15 @@ function  createLocalStream(callbacks) {
 	return Janus.prepareLocalStream(true, callbacks); 
 };
 
-
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
 		$('#start').one('click', function() {
 			$(this).attr('disabled', true).unbind('click');
-			// Make sure the browser supports WebRTC
-			if(!Janus.isWebrtcSupported()) {
-				bootbox.alert("No WebRTC support... ");
-				return;
-			}
-
-			
+			$('#details').remove();
 			// Enumerate devices: that's what we're here for
 			Janus.listDevices(initDevices);
-
 			
 			// We wait for the user to select the first device before making a move
 			$('#start').removeAttr('disabled').html("Stop")
@@ -165,7 +134,6 @@ $(document).ready(function() {
 				    $(this).attr('disabled', true);
 						window.location.reload();
 			});	
-
 			Janus.log("Enumerating the device is complete!");
 		});
 	}});

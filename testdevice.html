@@ -19,11 +19,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css"/>
 </head>
+
 <body>
 
-<nav class="navbar navbar-default navbar-static-top">
-</nav>
-
+<nav class="navbar navbar-default navbar-static-top"> </nav>
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
@@ -32,30 +31,18 @@
 					<button class="btn btn-default" autocomplete="off" id="start">Start</button>
 				</h1>
 			</div>
-			<!--div class="container" id="details">
+			<div class="container" id="details">
 				<div class="row">
 					<div class="col-md-12">
-						<h3>Demo details</h3>
-						<p>This is a variant of the Echo Test demo: everything is exactly
-						the same in term of available controls, features, and the like, with
-						the substantial difference that you can select which of the available
-						devices (microphones, webcams) you want to use for the media setup.</p>
-						<p>The demo will start by automatically selecting some default devices,
-						pretty much as the regular Echo Test demo already does. Once done,
-						you'll be able to individually change the capture audio and/or video
-						device: this will result in the Echo Test channel being reset and
-						recreated, in order to use the device(s) you selected instead. Just
-						as with the regular Echo Test demo, the <code>?simulcast=true</code>
-						query string will allow you to test simulcasting as well.</p>
-						<p>The demo exploits a functionality made available in the
-						<code>janus.js</code> library, meaning you should be able to
-						easily adapt all the other demos to follow the same approach as
-						well, and that you'll be able to do the same in your Janus-based
-						web application too.</p>
-						<p>Press the <code>Start</code> button above to launch the demo.</p>
+						<h3>Tool details</h3>
+						<p>. 列出所有音频和视频设备, 对选择的视频设备进行本地回显 </p>
+						<p>. 对本地回显进行截图保存 </p>
+						<p>. 对本地回显进行录制保存 </p>
+						<p>. 分析视频设备的输出格式 </p>
+						<p>Press the <code>Start</code> button above to launch the tool.</p>
 					</div>
 				</div>
-			</div-->
+			</div>
 			<div class="container">
 				<div class="row hide" id="devices">
 					<form class="form-inline">
@@ -79,7 +66,7 @@
 							<div class="panel-heading">
 								<h3 class="panel-title">Local Stream
 									<div class="btn-group btn-group-xs pull-right hide">
-										<button class="btn btn-danger" autocomplete="off" id="toggleaudio">Disable audio</button>
+										<!--button class="btn btn-danger" autocomplete="off" id="toggleaudio">Disable audio</button>
 										<button class="btn btn-danger" autocomplete="off" id="togglevideo">Disable video</button>
 										<div class="btn-group btn-group-xs">
 											<button id="bitrateset" autocomplete="off" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
@@ -94,7 +81,7 @@
 												<li><a href="#" id="1500">Cap to 1.5mbit</a></li>
 												<li><a href="#" id="2000">Cap to 2mbit</a></li>
 											</ul>
-										</div>
+										</div-->
 									</div>
 								</h3>
 							</div>
