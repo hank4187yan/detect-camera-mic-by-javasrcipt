@@ -31,6 +31,11 @@ var webrtcStuff = {
 	}
 };
 
+var btn_new_photo = null;
+var btn_download  = null;
+var canvas_photo  = null;
+var camera_overview = null; 
+
 // List of sessions
 Janus.sessions = {};
 Janus.noop = function() {};
@@ -536,10 +541,46 @@ function onlocalstream(stream) {
 		$('#videoleft .no-video-container').remove();
 		$('#myvideo').removeClass('hide').show();
 	}
+
 	// Reset devices controls
 	$('#audio-device, #video-device').removeAttr('disabled');
 	$('#change-devices').removeAttr('disabled');
+
+	// For snapshot
+	btn_new_photo = document.querySelector('#newphoto');
+	btn_download  = document.querySelector('#download');
+	camera_overview=document.querySelector('video');
+	canvas_photo  = document.querySelector('canvas');
+	
+	camera_overview.srcObject = stream;
+	btn_new_photo.onclick = snapshot_photo;
+	btn_download.onclick  = download_photo;
+	
+	camera_overview.onloadedmetadata = function() {
+		camera_overview.setAttribute("width", this.videoWidth);
+		camera_overview.setAttribute("height", this.videoHeight);
+		canvas_photo.setAttribute("width", this.videoWidth);
+		canvas_photo.setAttribute("height", this.videoHeight);
+		Janus.log("Video source width: ", this.videoWidth);
+		Janus.log("Video source height:", this.videoHeight);
+	};
+		
 }
+
+
+function snapshot_photo() {
+	canvas_photo.getContext("2d").drawImage(camera_overview, 0, 0, camera_overview.width, camera_overview.height);
+		btn_download.removeAttribute("disabled");
+};
+  
+function download_photo() {
+	canvas_photo.toBlob(function (blob) {
+	  var link = document.createElement("a");
+	  link.download = "photo.jpg";
+	  link.setAttribute("href", URL.createObjectURL(blob));
+	  link.dispatchEvent(new MouseEvent("click"));
+	}, "image/jpeg", 1);
+};
 
 function Janus(gatewayCallbacks) {
 	gatewayCallbacks = gatewayCallbacks || {};

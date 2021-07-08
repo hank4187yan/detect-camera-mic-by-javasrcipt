@@ -135,6 +135,9 @@ $(document).ready(function() {
 						window.location.reload();
 			});	
 			Janus.log("Enumerating the device is complete!");
+
+			
+			$('#operation').removeClass('hide').show();
 		});
 	}});
 });
