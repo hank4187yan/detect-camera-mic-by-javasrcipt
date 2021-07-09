@@ -31,10 +31,31 @@ var webrtcStuff = {
 	}
 };
 
+// For snapshot
 var btn_new_photo = null;
 var btn_download  = null;
+var btn_start_rec = null;
+var btn_stop_rec  = null;
 var canvas_photo  = null;
 var camera_overview = null; 
+
+// For record
+var preview = null;
+var recording = null; 
+var startButton = null;
+var stopButton = null;
+var downloadButton = null;
+var logElement = null;
+var timestamp = null;
+
+var recordingTimeMS = 1 * 60 * 1000;  // 1min
+
+var recorder;
+var intervalId = null;
+var record_status = false;  // 是否正在录制
+
+var stream = null;
+
 
 // List of sessions
 Janus.sessions = {};
@@ -540,6 +561,7 @@ function onlocalstream(stream) {
 	} else {
 		$('#videoleft .no-video-container').remove();
 		$('#myvideo').removeClass('hide').show();
+		$('#record').removeClass('hide').show();
 	}
 
 	// Reset devices controls
@@ -565,9 +587,53 @@ function onlocalstream(stream) {
 		Janus.log("Video source height:", this.videoHeight);
 	};
 		
+
+	// For record 
+	/*
+	let media_recorder = new MediaRecorder(stream);
+	media_recorder.ondataavailable = function(blob) {
+			console.log(blob.data);
+	}
+	media_recorder.start(1000);
+	*/
+	preview = document.getElementById("preview");
+	recording = document.getElementById("recording");
+	startButton = document.getElementById("startButton");
+	stopButton = document.getElementById("stopButton");
+	downloadButton = document.getElementById("downloadButton");
+	logElement = document.getElementById("log");
+	timestamp = document.getElementById("timestamp");
+
+	startButton.addEventListener("click", function () {
+		navigator.mediaDevices.getUserMedia({
+			video: true,
+			audio: true
+		}).then(mystream => {
+			configUi("start");
+			preview.srcObject = stream;
+			downloadButton.href = stream;
+			preview.captureStream = preview.captureStream || preview.mozCaptureStream;
+			return new Promise(resolve => preview.onplaying = resolve);
+		}).then(() => startRecording(preview.captureStream(), recordingTimeMS))
+			.then(recordedChunks => {
+				console.log(recordedChunks);
+				let recordedBlob = new Blob(recordedChunks, {type: "video/webm"});
+				recording.src = URL.createObjectURL(recordedBlob);
+				downloadButton.href = recording.src;
+				downloadButton.download = "RecordedVideo.webm";
+				log("Successfully recorded " + recordedBlob.size + " bytes of " +
+					recordedBlob.type + " media.");
+			})
+			.catch(log);
+	}, false);
+	
+	stopButton.addEventListener("click", function () {
+		stop(preview.srcObject);
+	}, false);
+
 }
 
-
+// For snapshot
 function snapshot_photo() {
 	canvas_photo.getContext("2d").drawImage(camera_overview, 0, 0, camera_overview.width, camera_overview.height);
 		btn_download.removeAttribute("disabled");
@@ -581,6 +647,85 @@ function download_photo() {
 	  link.dispatchEvent(new MouseEvent("click"));
 	}, "image/jpeg", 1);
 };
+
+
+/* For record */
+function configUi(operator_type) {
+    if (operator_type === 'start') {
+        timestamp.innerText = `00:00`;
+        record_status = true;
+        let timeStamp = 1;
+        intervalId = setInterval(() => {
+            const min = Math.floor(timeStamp / 60);
+            const sec = timeStamp % 60;
+            timestamp.innerText = `${min > 9 ? min : ("0" + min)}:${sec > 10 ? sec : ("0" + sec)}`;
+            timeStamp += 1;
+        }, 1000);
+        removeClass(preview, 'hide');  // 预览的显示
+        addClass(recording, 'hide');  // 播放的隐藏
+        addClass(startButton, 'hide');  // 开始按钮隐藏
+        removeClass(stopButton, 'hide');  // 结束按钮显示
+    } else {
+        if (record_status === true) {
+            record_status = false;
+            intervalId && clearInterval(intervalId);
+            addClass(preview, 'hide');  // 预览的隐藏
+            removeClass(recording, 'hide');  // 播放的显示
+            removeClass(startButton, 'hide');  // 开始按钮显示
+            removeClass(downloadButton, 'hide');  // 下载按钮显示
+            addClass(stopButton, 'hide');  // 结束按钮隐藏
+        }
+    }
+    return true;
+};
+
+function addClass(ele, className) {
+    ele.classList.add(className);
+};
+
+function removeClass(ele, className) {
+    ele.classList.remove(className);
+};
+
+function log(msg) {
+    logElement.innerHTML += msg + "\n";
+};
+
+function wait(delayInMS) {
+    return new Promise(resolve => setTimeout(resolve, delayInMS));
+};
+
+function startRecording(stream, lengthInMS) {
+    recorder = new MediaRecorder(stream);
+    let data = [];
+
+    recorder.ondataavailable = event => data.push(event.data);
+    recorder.start();
+    log(recorder.state + " for " + (lengthInMS / 1000) + " seconds...");
+
+    let stopped = new Promise((resolve, reject) => {
+        recorder.onstop = resolve;
+        recorder.onerror = event => reject(event.name);
+    });
+
+    let recorded = wait(lengthInMS).then(() => {
+            return recorder.state === "recording" && configUi("stop") && recorder.stop();
+        }
+    );
+
+    return Promise.all([
+        stopped
+        // recorded
+    ])
+        .then(() => data);
+};
+
+function stop(stream) {
+    configUi('stop');
+    stream.getTracks().forEach(track => track.stop());
+    recorder.state === "recording" && recorder.stop();
+};
+
 
 function Janus(gatewayCallbacks) {
 	gatewayCallbacks = gatewayCallbacks || {};
